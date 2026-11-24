@@ -1,0 +1,53 @@
+name: Work item
+description: A feature or bug for the factory to deliver to a target repository.
+title: "<one-line summary>"
+labels: [work-item]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The factory picks this up when the `factory:ready` label is added. The PR title becomes `<change type>: <issue title>`.
+
+  - type: input
+    id: target
+    attributes:
+      label: Target repository
+      description: "`owner/repo`, registered in `.github/factory/config.yml`."
+      placeholder: kelvvinn/<target-repo>
+    validations:
+      required: true
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Change type
+      description: The Commitizen type of the target PR.
+      options:
+        - feat
+        - tweak
+        - fix
+        - refactor
+        - test
+        - docs
+        - chore
+        - build
+    validations:
+      required: true
+
+  - type: textarea
+    id: specification
+    attributes:
+      label: Specification
+      description: What must be delivered. Link data contracts, schemas or Jira items the work depends on.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: One verifiable condition per line. The PR must give evidence for each.
+      placeholder: |
+        - [ ] <condition a test or command can prove>
+    validations:
+      required: true

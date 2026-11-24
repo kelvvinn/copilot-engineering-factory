@@ -1,0 +1,36 @@
+[tool.commitizen]
+name = "cz_customize"
+tag_format = "v$version"
+version_scheme = "semver2"
+version = "0.1.0"
+update_changelog_on_bump = true
+
+[tool.commitizen.customize]
+# `agent` = changes to agent definitions or prompts (.github/agents, stage prompts).
+# `tweak` = minor change that slightly alters behaviour but is too small to be a feature
+#           (e.g. improving a function's accuracy, a slight change to a transform).
+# `test`  = adding or updating tests only.
+schema_pattern = "^(agent|build|bump|docs|feat|tweak|fix|refactor|test|chore):(\\s.*)"
+schema = "<type>: <description>"
+example = "agent: tighten peer-reviewer verdict format"
+info = "Allowed types: agent, build, bump, docs, feat, tweak, fix, refactor, test, chore"
+
+# Include all commits except bumps in CHANGELOG.md.
+changelog_pattern = "^(agent|build|docs|feat|tweak|fix|refactor|test|chore):(\\s.*)"
+
+# To parse commit messages so they can be formatted correctly in CHANGELOG.md.
+commit_parser = "^(?P<change_type>agent|build|bump|docs|feat|tweak|fix|refactor|test|chore):\\s(?P<message>.*)?"
+
+# Order of headings in CHANGELOG.md.
+change_type_order = ["feat", "agent", "tweak", "build", "fix", "refactor", "test", "chore", "docs"]
+
+[tool.commitizen.customize.bump_map]
+feat = "MINOR"
+agent = "PATCH"
+build = "PATCH"
+docs = "PATCH"
+fix = "PATCH"
+refactor = "PATCH"
+test = "PATCH"
+chore = "PATCH"
+tweak = "PATCH"

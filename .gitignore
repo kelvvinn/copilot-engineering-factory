@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Secrets (the GitHub App private key is downloaded as a .pem)
+.env
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db

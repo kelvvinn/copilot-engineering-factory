@@ -1,0 +1,19 @@
+# Factory configuration, read by the Conductor (.github/workflows/conductor.yml).
+# Add targets with docs/onboarding-a-target-repo.md.
+
+# Applied to every target; a target's own values override them.
+defaults:
+  default_branch: main
+  runtime:
+    python: "3.12"
+
+targets: []
+# - repo: kelvvinn/<target-repo>
+#   default_branch: main             # omit to use defaults
+#   runtime:
+#     python: "3.12"                 # omit to use defaults
+#     java: "21"                     # omit if not needed
+#   setup: <setup-command>           # e.g. pip install -r requirements.txt
+#   lint:  <lint-command>
+#   test:  <test-command>            # e.g. python -m pytest
+#   private_deps: [kelvvinn/<private-dep-repo>]  # repos the App must also be installed on

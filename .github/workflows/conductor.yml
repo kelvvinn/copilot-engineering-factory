@@ -1,0 +1,166 @@
+name: conductor
+
+# Routes work items between stages. V1: factory:ready -> build -> factory:ready-for-human.
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      work_item:
+        description: Work item issue number (must be open and labelled factory:ready)
+        required: true
+        type: number
+
+permissions: {}
+
+concurrency:
+  group: work-item-${{ github.event.issue.number || inputs.work_item }}
+
+env:
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+jobs:
+  start:
+    if: >-
+      vars.FACTORY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.label.name == 'factory:ready')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK_ITEM: ${{ github.event.issue.number || inputs.work_item }}
+    outputs:
+      work_item: ${{ steps.order.outputs.work_item }}
+      target_repo: ${{ steps.order.outputs.target_repo }}
+      change_type: ${{ steps.order.outputs.change_type }}
+      base_branch: ${{ steps.order.outputs.base_branch }}
+      python_version: ${{ steps.order.outputs.python_version }}
+      java_version: ${{ steps.order.outputs.java_version }}
+      setup: ${{ steps.order.outputs.setup }}
+      private_deps: ${{ steps.order.outputs.private_deps }}
+      lint: ${{ steps.order.outputs.lint }}
+      test: ${{ steps.order.outputs.test }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            .github/factory
+            .github/ISSUE_TEMPLATE
+
+      - name: Read work item and target config
+        id: order
+        run: |
+          set -euo pipefail
+          issue=$(gh issue view "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" --json body,labels,state)
+          if ! jq -e '.state == "OPEN" and any(.labels[]; .name == "factory:ready")' <<<"$issue" >/dev/null; then
+            echo "::error::Work item #$WORK_ITEM must be open and labelled factory:ready"
+            exit 1
+          fi
+
+          # Issue forms render each field as a "### <label>" heading followed by its value.
+          field() {
+            jq -r .body <<<"$issue" | tr -d '\r' \
+              | awk -v h="### $1" '$0 == h {f=1; next} /^### / {f=0} f && NF {print; exit}'
+          }
+          TARGET=$(field "Target repository")
+          change_type=$(field "Change type")
+          export TARGET
+
+          # The work item form's dropdown is the single list of change types.
+          change_types=$(yq '.body[] | select(.id == "change-type") | .attributes.options[]' \
+            .github/ISSUE_TEMPLATE/work-item.yml)
+          if ! grep -qxF -- "$change_type" <<<"$change_types"; then
+            echo "::error::Unknown change type '$change_type'"
+            exit 1
+          fi
+
+          target_json=$(yq -o=json -I=0 '.targets[] | select(.repo == strenv(TARGET))' .github/factory/config.yml)
+          if [ -z "$target_json" ]; then
+            echo "::error::$TARGET is not registered in .github/factory/config.yml"
+            exit 1
+          fi
+          defaults_json=$(yq -o=json -I=0 '.defaults // {}' .github/factory/config.yml)
+
+          {
+            echo "work_item=$WORK_ITEM"
+            echo "target_repo=$TARGET"
+            echo "change_type=$change_type"
+            jq -r --argjson defaults "$defaults_json" '$defaults * . |
+              "base_branch=\(.default_branch)",
+              "python_version=\(.runtime.python)",
+              "java_version=\(.runtime.java // "")",
+              "setup=\(.setup // "")",
+              "private_deps=\((.private_deps // []) | map(split("/")[1]) | join(","))",
+              "lint=\(.lint // "")",
+              "test=\(.test // "")"' <<<"$target_json"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Mark building
+        run: |
+          set -euo pipefail
+          gh issue edit "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" \
+            --remove-label factory:ready --add-label factory:building
+          # Clears the label left by an earlier escalation when a human re-queues the work item.
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/$WORK_ITEM/labels/factory:needs-human" --silent || true
+          gh issue comment "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" --body "Build started: $RUN_URL"
+
+      - name: Hand to a human
+        if: failure()
+        run: |
+          gh issue edit "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" \
+            --remove-label factory:ready --add-label factory:needs-human
+          gh issue comment "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" \
+            --body "The factory could not start this work item. See $RUN_URL"
+
+  build:
+    needs: start
+    uses: ./.github/workflows/build.lock.yml
+    # The union of the permissions the compiled stage's jobs request.
+    permissions:
+      actions: read
+      checks: read
+      contents: write
+      issues: write
+      pull-requests: write
+    with:
+      work_item: ${{ fromJSON(needs.start.outputs.work_item) }}
+      target_repo: ${{ needs.start.outputs.target_repo }}
+      change_type: ${{ needs.start.outputs.change_type }}
+      base_branch: ${{ needs.start.outputs.base_branch }}
+      python_version: ${{ needs.start.outputs.python_version }}
+      java_version: ${{ needs.start.outputs.java_version }}
+      setup: ${{ needs.start.outputs.setup }}
+      private_deps: ${{ needs.start.outputs.private_deps }}
+      lint: ${{ needs.start.outputs.lint }}
+      test: ${{ needs.start.outputs.test }}
+    secrets: inherit
+
+  finish:
+    needs: [start, build]
+    if: always() && needs.start.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      WORK_ITEM: ${{ needs.start.outputs.work_item }}
+      BUILD_RESULT: ${{ needs.build.result }}
+      PR_URL: ${{ needs.build.outputs.created_pr_url }}
+    steps:
+      - name: Route to the next state
+        run: |
+          set -euo pipefail
+          if [ "$BUILD_RESULT" = success ] && [ -n "$PR_URL" ]; then
+            next=factory:ready-for-human
+            message="Ready for human review: $PR_URL"
+          else
+            next=factory:needs-human
+            message="The build stage ended with '$BUILD_RESULT' and no pull request. See $RUN_URL"
+          fi
+          gh issue edit "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" \
+            --remove-label factory:building --add-label "$next"
+          gh issue comment "$WORK_ITEM" --repo "$GITHUB_REPOSITORY" --body "$message"
