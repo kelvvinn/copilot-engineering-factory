@@ -1,0 +1,56 @@
+name: bump
+
+# On each merge to main: bump the version from the Commitizen commit types, update CHANGELOG.md,
+# tag the release and publish it as a GitHub Release. The `bump:` commit it pushes doesn't re-trigger it.
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: bump
+
+jobs:
+  bump:
+    if: ${{ !startsWith(github.event.head_commit.message, 'bump:') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Install Commitizen
+        run: pip install --disable-pip-version-check -r requirements.txt
+
+      - name: Bump version and update CHANGELOG.md
+        id: bump
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          before=$(cz version --project)
+          # Exit codes 3 and 21: nothing since the last release warrants a bump (e.g. a re-run).
+          cz --no-raise 3,21 bump --yes
+          after=$(cz version --project)
+          if [ "$before" != "$after" ]; then
+            echo "version=$after" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push and publish the release
+        if: steps.bump.outputs.version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          set -euo pipefail
+          git push --atomic origin main "refs/tags/v$VERSION"
+          cz changelog "$VERSION" --dry-run > release-notes.md
+          gh release create "v$VERSION" --title "v$VERSION" --notes-file release-notes.md --verify-tag

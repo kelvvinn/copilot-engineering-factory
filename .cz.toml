@@ -2,7 +2,8 @@
 name = "cz_customize"
 tag_format = "v$version"
 version_scheme = "semver2"
-version = "0.1.0"
+# Bumped by the `bump` workflow on each merge to main. Never edit by hand.
+version = "0.0.0"
 update_changelog_on_bump = true
 
 [tool.commitizen.customize]

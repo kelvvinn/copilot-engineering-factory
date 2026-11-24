@@ -18,7 +18,7 @@ flowchart LR
 
 ## How it works
 
-Work items move through a pipeline of agent stages: **plan → build → review ⇄ fix → ready for human**. A deterministic **Conductor** workflow routes each work item between stages. The agents run as [GitHub Agentic Workflows (gh-aw)](https://github.github.com/gh-aw/) on the Copilot engine and raise a pull request on the **target repository**, which a human approves and merges.
+Work items move through a pipeline of agent stages: **plan → build → review ⇄ fix → ready for human**. A deterministic **Conductor** workflow routes each work item between stages. The agents run as [GitHub Agentic Workflows (gh-aw)](https://github.github.com/gh-aw/) on the Copilot engine and raise a PR on the **target repository**, which a human approves and merges.
 
 ## Documentation
 
@@ -42,7 +42,7 @@ scripts/        # repo admin scripts (repo-settings.sh)
 
 ## Contributing
 
-Commits and PR titles follow [Commitizen](https://commitizen-tools.github.io/commitizen/) using `.cz.toml`. PRs are squash-merged and the **PR title becomes the commit**.
+Commits and PR titles follow [Commitizen](https://commitizen-tools.github.io/commitizen/) using `.cz.toml`. PRs are squash-merged and the **PR title becomes the commit**. Each merge to `main` bumps the version from these types, updates [CHANGELOG.md](CHANGELOG.md) and publishes a GitHub Release.
 
 | Type | Use for | Bump |
 |---|---|---|
