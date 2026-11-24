@@ -23,7 +23,7 @@ A factory that takes a Jira work item or GitHub issue (feature or bug) and, **un
 2. **GitHub is the message bus.** Agents hand work to each other through issues, PR comments and labels, using fixed formats. Every hand-off is visible, auditable and can be overridden by a human.
 3. **Least privilege.** Agents are read-only. Writes go through gh-aw *safe outputs*, which are validated and scoped. Agents cannot approve, merge or edit target CI.
 4. **Humans own the merge.** Branch protection on every target requires human approval.
-5. **Separate from targets.** The factory lives here. Target repos only receive PRs, so a target's codebase or deployment (e.g. its Databricks bundle) is never coupled to the factory.
+5. **Separate from targets.** The factory lives here and installs nothing in target repos, so a target's codebase or deployment (e.g. its Databricks bundle) is never coupled to the factory.
 6. **Extend through config.** New stages, reviewers, models and targets are added as files and config, not by re-architecting.
 
 ## Target architecture

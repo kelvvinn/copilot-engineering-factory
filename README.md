@@ -1,6 +1,6 @@
 # copilot-engineering-factory
 
-An agentic data engineering factory powered by GitHub Copilot, orchestrating specialised agents to analyse, plan, implement, test and review work items (e.g. Jira) and GitHub issues across data engineering and analytics.
+An agentic data engineering factory powered by GitHub Copilot, orchestrating specialised agents to analyse, plan, implement, test and review Jira work items and GitHub issues across data engineering and analytics.
 
 The factory is built on a simple premise: a well-defined specification in, a proven outcome out. Each work item sets out what must be delivered and the acceptance criteria that define success. The work is complete only when tests the agents run prove that every criterion has been met.
 
@@ -12,13 +12,13 @@ flowchart LR
     C -- Yes --> D["Pull request<br/>with evidence"]
     D --> E["Human review<br/>and merge"]
     %% Invisible spacer keeps GitHub's zoom controls clear of the diagram
-    E ~~~ spacer["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"]
+    E ~~~ spacer["&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;"]
     style spacer fill:none,stroke:none
 ```
 
 ## How it works
 
-Work items move through a pipeline of agent stages: **plan → build → review ⇄ fix → ready for human**. A deterministic **Conductor** workflow routes each work item between stages. The agents run as [GitHub Agentic Workflows (gh-aw)](https://github.github.com/gh-aw/) on the Copilot engine. They operate on **target repositories** which only ever receive pull requests. A human always approves and merges.
+Work items move through a pipeline of agent stages: **plan → build → review ⇄ fix → ready for human**. A deterministic **Conductor** workflow routes each work item between stages. The agents run as [GitHub Agentic Workflows (gh-aw)](https://github.github.com/gh-aw/) on the Copilot engine and raise a pull request on the **target repository**, which a human approves and merges.
 
 ## Documentation
 
