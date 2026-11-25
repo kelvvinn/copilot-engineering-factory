@@ -1,3 +1,9 @@
+## v0.1.2 (2026-11-25)
+
+### tweak
+
+- stop suggesting PR branch updates in repo settings (#2)
+
 ## v0.1.1 (2026-11-25)
 
 ### build
