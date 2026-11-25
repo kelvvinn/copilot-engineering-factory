@@ -8,7 +8,7 @@ echo "Merge settings: squash only, PR title as commit, delete merged branches, P
 gh api -X PATCH "repos/$R" \
   -F allow_squash_merge=true -F allow_merge_commit=false -F allow_rebase_merge=false \
   -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY \
-  -F delete_branch_on_merge=true -F allow_update_branch=true \
+  -F delete_branch_on_merge=true -F allow_update_branch=false \
   -F has_issues=true -F has_wiki=false -F has_projects=false \
   -f pull_request_creation_policy=collaborators_only > /dev/null
 
