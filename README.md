@@ -20,6 +20,8 @@ flowchart LR
 
 Work items move through a pipeline of agent stages: **plan → build → review ⇄ fix → ready for human**. A deterministic **Conductor** workflow routes each work item between stages. The agents run as [GitHub Agentic Workflows (gh-aw)](https://github.github.com/gh-aw/) on the Copilot engine and raise a PR on the **target repository**, which a human approves and merges.
 
+This repo is a public demo. Its work items, workflow logs and target config are public, so only point it at public code.
+
 ## Documentation
 
 | Doc | Purpose |

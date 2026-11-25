@@ -2,6 +2,8 @@
 
 Repeat these steps for each repo the factory should work on. Complete [setup.md](setup.md) first.
 
+Onboard public repos only. This repo is public, so its work items, run logs and target config are visible to anyone.
+
 Placeholders: `TARGET=kelvvinn/<target-repo>` and `F=kelvvinn/copilot-engineering-factory`.
 
 ## Checklist
@@ -78,7 +80,7 @@ gh label create factory --repo $TARGET --color 5319E7 --description "PR raised b
 2. Expect: a PR in the target labelled `factory`, target CI starts, and the work item reaches `factory:ready-for-human`.
 3. Close the PR without merging.
 
-> PRs created with an App token **do** trigger the target's GitHub Actions. Azure DevOps CI triggers through its own GitHub integration.
+> PRs created with an App token **do** trigger the target's GitHub Actions. Other CI services (e.g. CircleCI) trigger through their own GitHub integration.
 
 ## Offboarding
 
