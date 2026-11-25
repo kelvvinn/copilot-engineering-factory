@@ -52,7 +52,7 @@ flowchart LR
 
     subgraph Targets["Target repos"]
         PR[Pull request]
-        CI[Target CI<br/>ADO / Actions]
+        CI[Target CI<br/>GitHub Actions]
     end
 
     B -->|create-pull-request| PR
