@@ -1,3 +1,11 @@
+## v0.1.1 (2026-11-25)
+
+### build
+
+- tidy up repo settings and docs
+- tidy up repo settings and docs
+- tidy up repo settings and docs
+
 ## v0.1.0 (2026-11-24)
 
 ### feat
